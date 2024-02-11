@@ -42,4 +42,4 @@ src:
 ```
 
 ### Summary Statistics:
-Brief summary statistics have been created for each dataset in their respective ipynb files. These notebooks include metadata, data transformation (one-hot vectors to human interpretable images), "mean" images, and traditional summary statistics on the euclidean distance from the mean image and records. 
+Brief summary statistics have been created for each dataset in their respective ipynb files. These notebooks include metadata, data transformation (one-hot vectors to human interpretable images), "mean" images, and traditional summary statistics on the euclidean distance from the mean image and records. The latter was outputted to text files to declutter the notebooks.
