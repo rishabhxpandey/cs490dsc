@@ -64,7 +64,7 @@ Brief summary statistics have been created for each dataset in their respective 
 Our control group for this project are basic resnet models trained on our datasets. Details about the model can be found within their respective notebooks. The resnet19 models were recreated using pytorch. GPU acceleration is recommended for training. Models were saved to .pth files.
 
 ## Running on scholar: job.sh
-// Before running any conda command remember to load the module: module load anaconda  
+Before running any conda command remember to load the module: ```module load anaconda  ```
 first set up your conda environment. In the sample job file, the conda environment is called "d22env."  
      use command: 
      ```conda create --name MyEnvName python=3.8 pytorch torchvision matplotlib pandas <Any other packages you might need> -y  ```
