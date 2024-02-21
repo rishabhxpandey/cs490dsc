@@ -1,0 +1,26 @@
+module loaded
+0
+/home/dixit22/.conda/envs/cent7/2020.11-py38/d22env/lib/python3.8/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: '/home/dixit22/.conda/envs/cent7/2020.11-py38/d22env/lib/python3.8/site-packages/torchvision/image.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+Using device: cpu
+[[0.23137255 0.16862745 0.19607843 ... 0.54901961 0.32941176 0.28235294]
+ [0.60392157 0.49411765 0.41176471 ... 0.54509804 0.55686275 0.56470588]
+ [1.         0.99215686 0.99215686 ... 0.3254902  0.3254902  0.32941176]
+ ...
+ [0.1372549  0.15686275 0.16470588 ... 0.30196078 0.25882353 0.19607843]
+ [0.74117647 0.72941176 0.7254902  ... 0.6627451  0.67058824 0.67058824]
+ [0.89803922 0.9254902  0.91764706 ... 0.67843137 0.63529412 0.63137255]]
+[[0.61960784 0.62352941 0.64705882 ... 0.48627451 0.50588235 0.43137255]
+ [0.92156863 0.90588235 0.90980392 ... 0.69803922 0.74901961 0.78039216]
+ [0.61960784 0.61960784 0.54509804 ... 0.03137255 0.01176471 0.02745098]
+ ...
+ [0.07843137 0.0745098  0.05882353 ... 0.19607843 0.20784314 0.18431373]
+ [0.09803922 0.05882353 0.09019608 ... 0.31372549 0.31764706 0.31372549]
+ [0.28627451 0.38431373 0.38823529 ... 0.36862745 0.22745098 0.10196078]]
+(50000, 3, 32, 32)
+(10000, 3, 32, 32)
+/home/dixit22/.conda/envs/cent7/2020.11-py38/d22env/lib/python3.8/site-packages/torch/utils/data/dataloader.py:558: UserWarning: This DataLoader will create 8 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+/home/dixit22/.conda/envs/cent7/2020.11-py38/d22env/lib/python3.8/site-packages/torch/utils/data/dataloader.py:558: UserWarning: This DataLoader will create 8 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+slurmstepd: error: *** JOB 290873 ON scholar-h002 CANCELLED AT 2024-02-21T16:26:59 ***

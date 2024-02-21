@@ -1,0 +1,7 @@
+/home/dixit22/.bash_profile: line 11: /class/datamine/apps/python/f2020-s2021/setup.sh: No such file or directory
+module loaded
+usage: jupyter-execute [-h] [--allow-errors] [--timeout NbClientApp.timeout]
+                       [--startup_timeout NbClientApp.startup_timeout]
+                       [--kernel_name NbClientApp.kernel_name]
+                       [extra_args [extra_args ...]]
+jupyter-execute: error: argument --stdout: expected one argument
