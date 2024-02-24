@@ -1,0 +1,100 @@
+Label truck Summary Statistics:
+Mean: 3345.05
+Standard Deviation: 973.31
+Variance: 947336.0
+25th Percentile: 2668.99
+Median: 3245.59
+75th Percentile: 3928.8
+Min: 752.57
+Max: 7247.95
+
+Label truck Summary Statistics:
+Mean: 3623.49
+Standard Deviation: 795.82
+Variance: 633322.65
+25th Percentile: 3079.1
+Median: 3492.12
+75th Percentile: 4043.89
+Min: 1449.42
+Max: 7055.73
+
+Label truck Summary Statistics:
+Mean: 3080.97
+Standard Deviation: 1020.21
+Variance: 1040823.04
+25th Percentile: 2334.88
+Median: 2959.64
+75th Percentile: 3671.21
+Min: 748.41
+Max: 7460.95
+
+Label truck Summary Statistics:
+Mean: 3493.48
+Standard Deviation: 895.57
+Variance: 802041.46
+25th Percentile: 2867.28
+Median: 3398.08
+75th Percentile: 4023.62
+Min: 1239.48
+Max: 6885.17
+
+Label truck Summary Statistics:
+Mean: 2844.4
+Standard Deviation: 890.96
+Variance: 793813.59
+25th Percentile: 2218.34
+Median: 2699.58
+75th Percentile: 3343.81
+Min: 880.66
+Max: 6797.33
+
+Label truck Summary Statistics:
+Mean: 3375.78
+Standard Deviation: 823.26
+Variance: 677759.99
+25th Percentile: 2802.24
+Median: 3339.92
+75th Percentile: 3868.69
+Min: 997.45
+Max: 6931.87
+
+Label truck Summary Statistics:
+Mean: 2984.29
+Standard Deviation: 959.05
+Variance: 919768.77
+25th Percentile: 2325.87
+Median: 2801.78
+75th Percentile: 3414.79
+Min: 949.91
+Max: 7527.19
+
+Label truck Summary Statistics:
+Mean: 3339.99
+Standard Deviation: 802.26
+Variance: 643625.0
+25th Percentile: 2772.11
+Median: 3247.54
+75th Percentile: 3811.66
+Min: 1513.21
+Max: 6718.64
+
+Label truck Summary Statistics:
+Mean: 3158.19
+Standard Deviation: 879.51
+Variance: 773534.83
+25th Percentile: 2529.96
+Median: 3091.45
+75th Percentile: 3716.27
+Min: 789.31
+Max: 6876.7
+
+Label truck Summary Statistics:
+Mean: 3478.09
+Standard Deviation: 683.53
+Variance: 467206.54
+25th Percentile: 3001.95
+Median: 3388.63
+75th Percentile: 3866.44
+Min: 1233.85
+Max: 6675.08
+

@@ -1,0 +1,100 @@
+Label 0 Summary Statistics:
+Mean: 2641.11
+Standard Deviation: 1050.24
+Variance: 1103004.0
+25th Percentile: 1889.57
+Median: 2442.98
+75th Percentile: 3154.95
+Min: 710.63
+Max: 7402.63
+
+Label 1 Summary Statistics:
+Mean: 2606.59
+Standard Deviation: 1024.27
+Variance: 1049131.53
+25th Percentile: 1889.81
+Median: 2426.99
+75th Percentile: 3121.46
+Min: 742.06
+Max: 7172.73
+
+Label 2 Summary Statistics:
+Mean: 2591.84
+Standard Deviation: 1051.8
+Variance: 1106282.74
+25th Percentile: 1846.32
+Median: 2401.63
+75th Percentile: 3080.2
+Min: 766.35
+Max: 7327.01
+
+Label 3 Summary Statistics:
+Mean: 2625.7
+Standard Deviation: 1036.6
+Variance: 1074545.8
+25th Percentile: 1888.83
+Median: 2438.81
+75th Percentile: 3124.7
+Min: 705.57
+Max: 7395.83
+
+Label 4 Summary Statistics:
+Mean: 2568.1
+Standard Deviation: 1030.54
+Variance: 1062003.99
+25th Percentile: 1845.75
+Median: 2391.49
+75th Percentile: 3053.09
+Min: 718.11
+Max: 7213.47
+
+Label 5 Summary Statistics:
+Mean: 2638.31
+Standard Deviation: 1052.46
+Variance: 1107678.8
+25th Percentile: 1895.25
+Median: 2459.1
+75th Percentile: 3149.48
+Min: 703.23
+Max: 7009.62
+
+Label 6 Summary Statistics:
+Mean: 2599.27
+Standard Deviation: 1022.98
+Variance: 1046495.57
+25th Percentile: 1864.22
+Median: 2423.4
+75th Percentile: 3116.83
+Min: 723.54
+Max: 7432.23
+
+Label 7 Summary Statistics:
+Mean: 2609.82
+Standard Deviation: 1031.2
+Variance: 1063377.51
+25th Percentile: 1877.08
+Median: 2404.87
+75th Percentile: 3123.89
+Min: 736.21
+Max: 7210.92
+
+Label 8 Summary Statistics:
+Mean: 2568.2
+Standard Deviation: 1039.26
+Variance: 1080062.42
+25th Percentile: 1844.17
+Median: 2368.78
+75th Percentile: 3047.63
+Min: 703.52
+Max: 7297.81
+
+Label 9 Summary Statistics:
+Mean: 2577.12
+Standard Deviation: 1012.73
+Variance: 1025622.9
+25th Percentile: 1852.39
+Median: 2388.63
+75th Percentile: 3094.2
+Min: 722.63
+Max: 7005.19
+
