@@ -84,10 +84,14 @@ Our control group for this project are basic resnet models trained on our datase
 
 ## Running on scholar: job.sh
 Before running any conda command remember to load the module: 
-```module load anaconda  ```
+```
+module load anaconda
+```
 first set up your conda environment. In the sample job file, the conda environment is called "d22env."  
-     use command: 
-     ```conda create --name MyEnvName python=3.8 pytorch torchvision matplotlib pandas <Any other packages you might need> -y  ```
+Use command: 
+```
+conda create --name MyEnvName python=3.8 pytorch torchvision matplotlib pandas <Any other packages you might need> -y  
+```
 
 To make sure your stdout is going to a file, adjust the ```#SBATCH --output=/your/desirable/directory  ```
 Before you run your command, make sure to change your directory back to your current working directory (directory is changed when you load anaconda, and it wont be able to find your file if you don't change it back  )
@@ -98,4 +102,6 @@ sbatch -A gpu run.sh
 ```
 
 To monitor your job use command: 
-```ssqueue -u  <your-username>``` 
+```
+ssqueue -u  <your-username>
+``` 
