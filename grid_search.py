@@ -136,11 +136,32 @@ def train_model(batch_size, learning_rate, weight_decay):
             write_record_to_json(results)
     print(f"The following hyperparameters have been tested: {batch_size},{learning_rate},{weight_decay}")
 
+def check_hyperparameters_not_in_json(batch_size, learning_rate, weight_decay):
+    try:
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        data = []
+
+    # Check if the specified hyperparameters are not already in the JSON file
+    for record in data:
+        if (
+            record["batch_size"] == batch_size
+            and record["learning_rate"] == learning_rate
+            and record["weight_decay"] == weight_decay
+        ):
+            return False  # Hyperparameters already exist in the file
+
+    return True  # Hyperparameters not found in the file
         
 for batch_size in [32,64,128]:
+    file_path = "grid_search_hyperparameters.json"
     for learning_rate in [0.1,0.01,0.001,0.0001]:
         for weight_decay in [1e-4,3e-4,5e-4]:
             num_epochs = 25
-            train_model(batch_size, learning_rate, weight_decay)
+            if check_hyperparameters_not_in_json(batch_size, learning_rate, weight_decay):
+                train_model(batch_size, learning_rate, weight_decay)
+            else:
+                print(f"Hyperparameters {batch_size}, {learning_rate}, {weight_decay} already exist in the file.")
 
 
