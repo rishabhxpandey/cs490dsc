@@ -12,11 +12,6 @@ SVHN: http://ufldl.stanford.edu/housenumbers/
 #### Directory Structure:
 ```
 src:
-│   cifar10_from_pytorch.ipynb
-│   cifar10_resnet18.ipynb
-│   mnist_resnet18.ipynb
-│   svhn_resnet18.ipynb
-│
 ├───artifacts
 │       resnet18_cifar_model.pth
 │       resnet18_mnist_model.pth
@@ -43,22 +38,26 @@ src:
 │           readme.html
 │           test_batch
 │
+├───images
+│       resnet18ex1.png
+│       resnet18ex2.png
+│
 ├───MNIST_CSV
 │       generate_mnist_csv.py
 │       mnist_test.csv
 │       mnist_train.csv
 │       readme.md
-└───SVHN
-|       extra_32x32.mat
-|       test_32x32.mat
-|       train_32x32.mat
-├───images
-│       resnet18ex1.png
-│       resnet18ex2.png
 │
 ├───Reports
 │       Business Understanding.pdf
 │       Data Understanding Report.pdf
+│
+├───resnet_models
+│       cifar10_resnet18.ipynb
+│       grid_search.py
+│       mnist_resnet18.ipynb
+│       svhn_resnet18.ipynb
+│       test_resnet_from_pytorch.ipynb
 │
 ├───Summary_Statistics
 │       cifar-10_summary_statistics.ipynb
@@ -68,12 +67,10 @@ src:
 │       svhn_summary_statistics.ipynb
 │       svhn_summary_statistics.txt
 │
-└───Summary_Statistics_pdfs
-        cifar-10_summary_statistics.pdf
-        mnist_summary_statistics.pdf
-        svhn_summary_statistics.pdf
-
-
+└───SVHN
+        extra_32x32.mat
+        test_32x32.mat
+        train_32x32.mat
 ```
 
 ### Summary Statistics:
