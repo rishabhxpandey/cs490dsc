@@ -2,7 +2,7 @@
 <p align="center">
  <img src="https://github.com/RishabhPandey0403/cs490dsc/assets/55699636/43b0705c-e5c8-4bfa-9638-763683be0f26">
 </p>
-![image]()
+
 
 
 ## Datasets:
