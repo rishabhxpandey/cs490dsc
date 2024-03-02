@@ -441,7 +441,7 @@ class Tester():
         with torch.no_grad():
             for images, labels in test_loader:
                 images, labels = images.to(device), labels.to(device)
-                print(images.shape)
+                # print(images.shape)
                 outputs, _ = model(images)
                 _, predicted = torch.max(outputs.data, 1)
                 # print(f"Label: {labels}, Predicted{predicted}")
