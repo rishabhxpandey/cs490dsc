@@ -1,6 +1,11 @@
-# CS490: Data Science Capstone Project
+# CS490 Data Science Capstone Project: Adversarial Robustness in Machine Learning Models
+<p align="center">
+ <img src="https://github.com/RishabhPandey0403/cs490dsc/assets/55699636/43b0705c-e5c8-4bfa-9638-763683be0f26">
+</p>
+![image]()
 
-### Datasets:
+
+## Datasets:
 The datasets used are MNIST, CIFAR10, and SVHN. They can be found in the following links. 
 
 MNIST: https://git-disl.github.io/GTDLBench/datasets/mnist_datasets/ 
@@ -74,31 +79,52 @@ src:
 ```
 
 ### Summary Statistics:
-Brief summary statistics have been created for each dataset in their respective ipynb files. These notebooks include metadata, data transformation (one-hot vectors to human interpretable images), "mean" images, and traditional summary statistics on the euclidean distance from the mean image and records. The latter was outputted to text files to declutter the notebooks.
+Brief summary statistics have been created for each dataset in their respective ipynb files. These notebooks include metadata, data transformation (one-hot vectors to human interpretable images), class balance, PCA dimensionality reduction, "mean" images, and traditional summary statistics on the euclidean distance from the mean image and records. The latter was outputted to separate text files.
 
-### Resnet18 Models:
-Our control group for this project are basic resnet models trained on our datasets. Details about the model can be found within their respective notebooks. The resnet19 models were recreated using pytorch. GPU acceleration is recommended for training. Models were saved to .pth files.
+## Models:
+Our control group for this project are basic resnet18 models trained on our datasets. Details about the model can be found within their respective notebooks. in the resnet_models folder. The resnet18 models were recreated using pytorch. GPU acceleration is recommended for training. Models were saved to .pth files which are moved to the artifacts folder. 
 
-## Running on scholar: job.sh
+Models will be loaded into another file and used to test against perturbed data to see how robust the models are against adversarial attacks. A library of model architectures can be found in model_architectures.py which are imported to our test file, test_perturbations.ipynb.
+
+## Job Scripts
+### Using SLURM:
+If the environment hasn't been configured yet, the setup script will create our conda environment on the SLURM GPU account. This only needs to be done once. Use command:
+```
+sbatch -A gpu setup_env.sh
+```
+
+To queue a job to be run with sbatch, use command:
+```
+sbatch -A gpu job.sh
+```
+
+To monitor your job, use command: 
+```
+ssqueue -u  <your-username>
+```
+
+To cancel a job, use command:
+```
+scancel <job-id>
+```
+
+### Create a job.sh Script:
+The shebang for a bash script is first set. After, we use #SBATCH comments to set out sbatch parameters. sbatch preprocesses these while running the job script so we don't need to manually input all of these (and they're ignored when run locally). Module purge is done to cleanse the previous module and reload with the correct modules.
 Before running any conda command remember to load the module: 
 ```
 module load anaconda
 ```
 first set up your conda environment. In the sample job file, the conda environment is called "d22env."  
-Use command: 
+
+The following command in setup_env.sh is used to create the environment. Modify it with packages you may need.
 ```
 conda create --name MyEnvName python=3.8 pytorch torchvision matplotlib pandas <Any other packages you might need> -y  
 ```
 
+After all dependencies are loaded, we run our desired file:
+```
+python -u <python file>.py
+```
+
 To make sure your stdout is going to a file, adjust the ```#SBATCH --output=/your/desirable/directory  ```
 Before you run your command, make sure to change your directory back to your current working directory (directory is changed when you load anaconda, and it wont be able to find your file if you don't change it back  )
-
-To queue a job to be run with sbatch, use command:
-```
-sbatch -A gpu run.sh
-```
-
-To monitor your job use command: 
-```
-ssqueue -u  <your-username>
-``` 
