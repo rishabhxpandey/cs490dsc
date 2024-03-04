@@ -113,7 +113,6 @@ class ResNetCIFAR(nn.Module):
         probas = F.softmax(logits, dim=1)
         return logits, probas
     
-
 # Define the ResNet model
 class ResNetMNIST(nn.Module):
     def __init__(self, block, layers, num_classes, grayscale):
