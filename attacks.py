@@ -6,8 +6,23 @@ print(f"Using device: {device}")
 import copy
 
 
-# FGSM attack code
+
 def fgsm_attack(image, epsilon, data_grad):
+    """
+    Author: Sai Coumar
+    Description: Perturbs an image using the Fast Gradient Sign Method attack
+    Attack Type: White Box
+
+    Parameters:
+    - image: The pytorch tensor of an image to perturb
+    - epsilon: A constant used to control the magnitude of perturbation
+
+    Returns:
+    - Perturbed image
+
+    Literature:
+    - https://arxiv.org/abs/1412.6572
+    """
     # Collect the element-wise sign of the data gradient
     sign_data_grad = data_grad.sign()
     # Create the perturbed image by adjusting each pixel of the input image
@@ -17,7 +32,25 @@ def fgsm_attack(image, epsilon, data_grad):
     # Return the perturbed image
     return perturbed_image
 
-def deepfool_attack(image, model, overshoot=0.2, max_iterations=50):  
+def deepfool_attack(image, model, overshoot=0.02, max_iterations=50):  
+    """
+    Author: Sai Coumar
+    Description: Perturbs an image using the DeepFool attack
+    Attack Type: White Box
+
+    Parameters:
+    - image: The pytorch tensor of an image to perturb
+    - model: The classifier model to attack
+    - overshoot: Hyperparameter to edge the perturbation past the minimal amount needed 
+    to perturb the image just to be safe the perturbation crosses the decision boundary
+    - max_iterations: Hyperparameter to limit resources to finite value 
+
+    Returns:
+    - Perturbed image
+
+    Literature:
+    - https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Moosavi-Dezfooli_DeepFool_A_Simple_CVPR_2016_paper.pdf
+    """
     # Copy the image data as an object to preserve gradient. This will be perturbed 
     # rather than the original image data
     x = copy.deepcopy(image)
@@ -81,3 +114,53 @@ def deepfool_attack(image, model, overshoot=0.2, max_iterations=50):
 
     return x, k_i, r_total, iter
 
+def pgd_attack(image, model, init_pred, epsilon, alpha=2,  max_iterations=50):
+    """
+    Author: Sai Coumar
+    Description: Perturbs an image using the Projected Gradient Descent attack
+    Attack Type: White Box
+
+    Parameters:
+    - image: The pytorch tensor of an image to perturb
+    - model: The classifier model to attack
+    - init_pred: True classified label given by the model before any attacks
+    - epsilon: A hyperparameter that defines the epsilon-ball threshold that the perturbed image
+    must stay confined to in order to retain percievability
+    - alpha: Step size hyperparameter to control the magnitude of perturbation
+    - max_iterations: Hyperparameter to limit resources to finite value  
+
+    Returns:
+    - Perturbed image
+
+    Literature:
+    - https://arxiv.org/abs/1412.6572
+    """
+
+    # Note: other examples may use alpha and epsilon divided by 255 
+    # because they normalize pixels to 1.
+    # Since normalization wasn't used we use integers 
+    perturbed_image = image
+    output_final = None
+    for _ in range(max_iterations):
+        # Predict on perturbed image
+        output, _ = model(perturbed_image)
+        output_final = output
+        # _, pred = torch.max(output.data, 1)
+
+        # Compare loss of true prediction vs outputted prediction
+        loss = F.cross_entropy(output, init_pred)
+        model.zero_grad()
+        loss.backward() 
+
+        # Extract gradient
+        sign_data_grad = image.grad.data.sign()
+
+        # Perturb image
+        perturbed_image = image  + alpha * sign_data_grad
+        
+        # Clipping to epislon ball
+        eta = torch.clamp(perturbed_image - image, min=-epsilon, max=epsilon)
+        perturbed_image = torch.clamp(perturbed_image + eta, min=0, max=255)
+
+    return output_final, perturbed_image
+ 
