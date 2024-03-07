@@ -17,6 +17,12 @@ SVHN: http://ufldl.stanford.edu/housenumbers/
 #### Directory Structure:
 ```
 src:
+C:.
+│   attacks.py
+│   literature
+│   model_architectures.py
+│   test_perturbations.ipynb
+│
 ├───artifacts
 │       resnet18_cifar_model.pth
 │       resnet18_mnist_model.pth
@@ -72,10 +78,10 @@ src:
 │       svhn_summary_statistics.ipynb
 │       svhn_summary_statistics.txt
 │
-└───SVHN
-        extra_32x32.mat
-        test_32x32.mat
-        train_32x32.mat
+├───SVHN
+│       extra_32x32.mat
+│       test_32x32.mat
+│       train_32x32.mat
 ```
 
 ### Summary Statistics:
@@ -128,3 +134,8 @@ python -u <python file>.py
 
 To make sure your stdout is going to a file, adjust the ```#SBATCH --output=/your/desirable/directory  ```
 Before you run your command, make sure to change your directory back to your current working directory (directory is changed when you load anaconda, and it wont be able to find your file if you don't change it back  )
+
+### Adversarial Attacks
+Model architecture for the control ResNet Models can be found in `model_architectures.py`.
+Adversarial Attacks can be found in `attacks.py`.
+Tests of the adversarial attacks can be found in `test_perturbations.ipynb`.
