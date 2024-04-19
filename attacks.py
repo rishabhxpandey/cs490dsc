@@ -378,7 +378,6 @@ def jsma_attack( model, input_image, target_class, num_classes, theta=0.1, gamma
 
     # Copy the input image to avoid modifying the original image
     adv_image = input_image.clone().detach().requires_grad_(True)
-
     # Define the optimizer
     optimizer = optim.Adam([adv_image], lr=0.01)
 
@@ -394,8 +393,8 @@ def jsma_attack( model, input_image, target_class, num_classes, theta=0.1, gamma
         optimizer.zero_grad()
         loss.backward()
         adv_image.grad.sign_()
+        
         adv_image.data = torch.clamp(adv_image + theta * adv_image.grad, 0, 255)
-
         # Check if the adversarial image is misclassified
         if torch.argmax(model(adv_image)[1]) == target_class:
             break
