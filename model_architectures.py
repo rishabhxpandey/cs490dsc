@@ -240,7 +240,7 @@ class Load():
     def load_mnist_test_images(self):
         mnist_test = pd.read_csv(os.path.join(mnist_directory, "mnist_test.csv"), header=None)
         test_labels = mnist_test.iloc[:, 0].values
-        test_images = mnist_test.iloc[:, 1:].values / 255.0  # Normalize pixel values to the range [0, 1]
+        test_images = mnist_test.iloc[:, 1:].values  / 255.0  # Normalize pixel values to the range [0, 1]
 
         return test_images.reshape((10000,1,28,28)), test_labels
 
@@ -307,7 +307,7 @@ class Load():
 
         # Extract labels and pixel values
         test_labels = cifar_test.iloc[:, -1].values
-        test_images = cifar_test.iloc[:, :-1].values 
+        test_images = cifar_test.iloc[:, :-1].values / 255
         test_images = convert_to_pytorch_images(test_images)
 
         return test_images, test_labels
@@ -387,7 +387,7 @@ class Load():
         flattened_test_data = pd.DataFrame(data_dict)
 
         test_labels = flattened_test_data.iloc[:, -1].values
-        test_images = flattened_test_data.iloc[:, :-1].values 
+        test_images = flattened_test_data.iloc[:, :-1].values / 255
 
         test_images = convert_to_pytorch_images(test_images)
 

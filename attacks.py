@@ -4,7 +4,8 @@ import torch.nn as nn
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 import copy
-
+import torch.optim as optim
+import model_architectures
 
 
 def fgsm_attack(image, epsilon, data_grad):
@@ -162,11 +163,11 @@ def pgd_attack(image, model, init_pred, epsilon, alpha=2,  max_iterations=50):
         
         # Clipping to epislon ball
         eta = torch.clamp(perturbed_image - image, min=-epsilon, max=epsilon)
-        perturbed_image = torch.clamp(perturbed_image + eta, min=0, max=255)
+        perturbed_image = torch.clamp(perturbed_image + eta, min=0, max=1)
 
     return output_final, perturbed_image
 
-def nes_attack(image, model, init_pred, init_labels, epsilon, alpha=2,  max_iterations=1):
+def nes_attack(image, model, init_pred, init_labels, epsilon, alpha=2,  max_iterations=50):
     """
     Author: Sai Coumar
     Description: Perturbs an image using the Natural Evolution Strategies (Finite Differences Variant) attack
@@ -211,7 +212,7 @@ def nes_attack(image, model, init_pred, init_labels, epsilon, alpha=2,  max_iter
             g += p_plus * ui
             g -= p_minus * ui
             
-            print("diff: ", torch.norm((sign_data_grad_actual - g).view(-1)).item(), " ,prob +: ", p_plus, " ,prob -: ", p_minus)
+            # print("diff: ", torch.norm((sign_data_grad_actual - g).view(-1)).item(), " ,prob +: ", p_plus, " ,prob -: ", p_minus)
           
         return (1 / (2 * n * sigma)) * g
 
@@ -223,7 +224,6 @@ def nes_attack(image, model, init_pred, init_labels, epsilon, alpha=2,  max_iter
     output_final = None
     
 
-    # max_iterations = 1
     for _ in range(max_iterations):
         # Predict on perturbed image
         output, _ = model(perturbed_image)
@@ -249,11 +249,159 @@ def nes_attack(image, model, init_pred, init_labels, epsilon, alpha=2,  max_iter
         
         # Clipping to epislon ball
         eta = torch.clamp(perturbed_image - image, min=-epsilon, max=epsilon)
-        perturbed_image = torch.clamp(perturbed_image + eta, min=0, max=255)
+        perturbed_image = torch.clamp(perturbed_image + eta, min=0, max=1)
         # print(perturbed_image)
 
     return output_final, perturbed_image
+
+def cw_attack(images, model, labels, targeted=False, target_labels = 0, c=0.1, alpha=0.01, kappa=0, max_iterations=50):
+    """
+    Author: Supriya Dixit
+    Description: Perturbs an image using the Carlini and Wagner attack
+    Attack Type: White Box
+
+    Parameters:
+    - image: The pytorch tensor of an image to perturb
+    - model: The classifier model to attack
+    - c: some constant c that lets you control how much influence the "maximum allowable" portion has
+    - alpha: learning rate of adam optimizer
+    - label: label of the image passed in
+
+
+    Returns:
+    - Perturbed image
+
+    Literature:
+    - https://arxiv.org/abs/1608.04644
+    """
     
+    viz = model_architectures.Visualizer()
+    
+    images = images.clone().detach().to(device)     
+    labels = labels.clone().detach().to(device)
+    
+    
+    MSELoss = nn.MSELoss(reduction="none")
+    Flatten = nn.Flatten()
+    
+    best_adv_images = images.clone().detach()
+    best_L2 = 1e10 * torch.ones((len(images))).to(device)
+    dim = len(images.shape)
+
+    w = torch.zeros_like(images).detach()
+    w.requires_grad = True
+
+    adam = optim.Adam([w], lr=alpha)
+    for _ in range(max_iterations):
+        #adam.zero_grad()
+        tanh_images = 1/2 * (torch.tanh(w) + 1)
+        
+
+        #tanh_images = tanh_images/255
+        ########################### f-function here #################################
+        
+        # f(x′)= max(max{Z(x′)i : i!=t}−Z(x′)t,−κ)
+        # max of (max of all other non target classes - the target class) and -kappa
+        # kappa - confidence with which the misclassification occurs 
+        
+        # prediction BEFORE-SOFTMAX of the model
+        outs, _ = model(tanh_images) #outs[1] is the probability of each class
+        
+        if targeted:
+            labels_encoded = torch.eye(outs.shape[1]).to(device)[labels]
+        else:
+            labels_encoded = F.one_hot(labels, 10)
+        #print(outs[0])
+        
+        other = torch.max((1 - labels_encoded) * outs, dim=1)
+        #real = torch.masked_select(outs, labels_encoded.byte())
+        real = torch.max(labels_encoded * outs, dim=1)
+        
+
+        if targeted: # If targeted, optimize for making the other class most likely
+            a = torch.clamp(other[0] - real[0], min=-kappa)
+        else:# If untargeted, optimize for making the other class most likely 
+            a = torch.clamp(real[0] - other[0], min=-kappa)
+            
+        #############################################################################
+        
+
+        current_L2 = MSELoss(Flatten(tanh_images), Flatten(images)).sum()
+        costp1 = current_L2.sum()
+
+        costp2 = c * torch.sum(a)
+
+        cost = costp1 + costp2
+
+        #do a step of gradient descent on w
+        adam.zero_grad()
+        cost.backward()
+        adam.step()
+        
+        # Update adversarial images
+        pre = torch.argmax(outs.detach(), 1)
+        
+        if targeted:
+            #We want to let pre == target_labels in a targeted attack
+            condition = (pre == target_labels).float()
+        else:
+            # If the attack is not targeted we simply make these two values unequal
+            condition = (pre != labels).float()
+        
+        mask = condition * (best_L2 > current_L2.detach())
+        best_L2 = mask * current_L2.detach() + (1 - mask) * best_L2
+
+        mask = mask.view([-1] + [1] * (dim - 1))
+        best_adv_images = mask * tanh_images.detach() + (1 - mask) * best_adv_images
+   
+
+
+    #return
+    return best_adv_images
+
+        
+def jsma_attack( model, input_image, target_class, num_classes, theta=0.1, gamma=0.1, max_iters=100):
+    """
+    Author: Supriya Dixit
+    Description: Perturbs an image using the JSMA attack
+    Attack Type: White Box
+
+    Parameters:
+    - image: The pytorch tensor of an image to perturb
+    
+
+    Returns:
+    - Perturbed image
+    """
+    
+    model.eval()
+
+    # Copy the input image to avoid modifying the original image
+    adv_image = input_image.clone().detach().requires_grad_(True)
+
+    # Define the optimizer
+    optimizer = optim.Adam([adv_image], lr=0.01)
+
+    # Loop until the maximum number of iterations is reached
+    for _ in range(max_iters):
+        # Forward pass to get the model's predictions
+        predictions = model(adv_image)
+
+        # Calculate the loss (targeted attack)
+        loss = -nn.CrossEntropyLoss()(predictions[1], torch.tensor([target_class]).to(device))
+
+        # Zero gradients, perform a backward pass, and update the adversarial image
+        optimizer.zero_grad()
+        loss.backward()
+        adv_image.grad.sign_()
+        adv_image.data = torch.clamp(adv_image + theta * adv_image.grad, 0, 255)
+
+        # Check if the adversarial image is misclassified
+        if torch.argmax(model(adv_image)[1]) == target_class:
+            break
+
+    return adv_image.detach()
+  
     # def nes_estimation(sign_data_grad_actual, model, label_actual, labels, sigma, n, image):
     #     N = image.size()[2]
     #     grads = []
