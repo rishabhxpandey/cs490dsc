@@ -394,7 +394,7 @@ def jsma_attack( model, input_image, target_class, num_classes, theta=0.1, gamma
         loss.backward()
         adv_image.grad.sign_()
         
-        adv_image.data = torch.clamp(adv_image + theta * adv_image.grad, 0, 255)
+        adv_image.data = torch.clamp(adv_image + theta * adv_image.grad, 0, 1)
         # Check if the adversarial image is misclassified
         if torch.argmax(model(adv_image)[1]) == target_class:
             break
