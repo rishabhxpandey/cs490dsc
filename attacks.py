@@ -360,7 +360,7 @@ def cw_attack(images, model, labels, targeted=False, target_labels = 0, c=0.1, a
     return best_adv_images
 
         
-def jsma_attack( model, input_image, target_class, num_classes, theta=0.1, gamma=0.1, max_iters=100):
+def jsma_attack( model, input_image, target_class, num_classes, theta=0.1, max_iters=50):
     """
     Author: Supriya Dixit
     Description: Perturbs an image using the JSMA attack
