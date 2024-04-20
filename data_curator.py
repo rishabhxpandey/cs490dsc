@@ -3,21 +3,39 @@ from attacks import *
 import csv
 
 class Curator():
-    def store_data(self, filename,data):
-        with open(filename, 'w', newline='') as csvfile:
-            writer = csv.writer(csvfile)
+    def store_data(self, filename, data, color = False):
+        if color:
+            with open(filename, 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                # Write header row
+                header = ['IntegerValue'] + [f'R_Pixel_{i}' for i in range(32*32)]+ [f'G_Pixel_{i}' for i in range(32*32)]+ [f'B_Pixel_{i}' for i in range(32*32)]
+                writer.writerow(header)
 
-            # Write header row
-            header = ['IntegerValue'] + [f'Pixel_{i}' for i in range(28*28)]
-            writer.writerow(header)
+                # Write data rows
+                for tuple_data in data:
+                    integer_value, _, array = tuple_data
+                    flattened_images = array.reshape(array.shape[0], -1)
 
-            # Write data rows
-            for tuple_data in data:
-                integer_value, _, array = tuple_data
-                flattened_array = array.flatten()
-                row = [integer_value] + list(flattened_array)
-                writer.writerow(row)
-                
+                    # Concatenate the color channels
+                    concatenated_channels = np.concatenate(flattened_images, axis=0)
+                    row = [integer_value] + list(concatenated_channels)
+                    writer.writerow(row)
+        else:
+            with open(filename, 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+
+                # Write header row
+                header = ['IntegerValue'] + [f'Pixel_{i}' for i in range(28*28)]
+                writer.writerow(header)
+
+                # Write data rows
+                for tuple_data in data:
+                    integer_value, _, array = tuple_data
+                    flattened_array = array.flatten()
+                    row = [integer_value] + list(flattened_array)
+                    
+                    writer.writerow(row)
+
     def curate_fgsm(self, model, test_loader, epsilon):
         correct = 0
         total = 0
