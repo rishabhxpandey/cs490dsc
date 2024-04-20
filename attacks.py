@@ -400,6 +400,12 @@ def jsma_attack( model, input_image, target_class, num_classes, theta=0.1, gamma
             break
 
     return adv_image.detach()
+
+# def boundary_attack(model, input_image, target_image):
+#     def get_diff(a,b):
+#         return torch.norm((a-b).view(-1))
+    
+
   
     # def nes_estimation(sign_data_grad_actual, model, label_actual, labels, sigma, n, image):
     #     N = image.size()[2]
