@@ -237,6 +237,13 @@ class ResnetSVHN(nn.Module):
         return logits, probas
     
 class Load():
+    def load_mnist_train_images(self):
+        mnist_test = pd.read_csv(os.path.join(mnist_directory, "mnist_train.csv"), header=None)
+        train_labels = mnist_test.iloc[:, 0].values
+        train_images = mnist_test.iloc[:, 1:].values  / 255.0  # Normalize pixel values to the range [0, 1]
+
+        return train_images.reshape((60000,1,28,28)), train_labels
+    
     def load_mnist_test_images(self):
         mnist_test = pd.read_csv(os.path.join(mnist_directory, "mnist_test.csv"), header=None)
         test_labels = mnist_test.iloc[:, 0].values
@@ -311,6 +318,74 @@ class Load():
         test_images = convert_to_pytorch_images(test_images)
 
         return test_images, test_labels
+
+    def load_cifar10_train_images(self):
+        def load_cifar10_batch(file_path):
+            with open(file_path, 'rb') as f:
+                batch = pickle.load(f, encoding='bytes')
+            return batch
+
+        # Helper function which concatenate the data from the 5 files into one large file
+        def load_cifar10_data(data_dir):
+            train_batches = []
+            for i in range(1, 6):
+                file_path = f"{data_dir}/data_batch_{i}"
+                train_batches.append(load_cifar10_batch(file_path))
+
+            test_batch = load_cifar10_batch(f"{data_dir}/test_batch")
+
+            # Concatenate training batches to get the full training dataset
+            train_data = np.concatenate([batch[b'data'] for batch in train_batches])
+            # Data Normalization
+            train_data = train_data
+            # print(train_data)
+            train_labels = np.concatenate([batch[b'labels'] for batch in train_batches])
+
+            # Extract test data and labels
+            test_data = test_batch[b'data']
+            # Data Normalization
+            test_data = test_data 
+            # print(test_data)
+            test_labels = test_batch[b'labels']
+
+            return train_data, train_labels, test_data, test_labels
+
+        def convert_to_pytorch_images(data_array):
+            """
+            Convert a single record into a pytorch image. Pytorch takes in a very specific input where each record is 3x32x32.
+
+            Parameters:
+            - One-hot vector the first 1024 values represent the red channel of pixels, the second 1024 values represent the green channel of pixels, and the last 1024 values represent the blue channel of pixels
+
+            Returns: 
+            - a numpy array representing the image data in pytorch format
+            """
+
+            num_images = data_array.shape[0]
+            image_size = 32
+
+            # Split the array into three parts
+            split_size = data_array.shape[1] // 3
+            red_channel = data_array[:, :split_size].reshape((num_images, 1, image_size, image_size))
+            green_channel = data_array[:, split_size:2*split_size].reshape((num_images, 1, image_size, image_size))
+            blue_channel = data_array[:, 2*split_size:].reshape((num_images, 1, image_size, image_size))
+
+            # Stack the channels along the second axis to get the final shape (num_images, 3, 32, 32)
+            return np.concatenate([red_channel, green_channel, blue_channel], axis=1)
+            
+        # Load the data from CSVs using pandas
+        train_data, train_labels, test_data, test_labels = load_cifar10_data(cifar_directory)
+        # Append the labels
+        columns = [f"pixel_{i+1}" for i in range(train_data.shape[1])]
+        cifar_train = pd.DataFrame(train_data, columns=columns)
+        cifar_train['label'] = train_labels
+
+        # Extract labels and pixel values
+        train_labels = cifar_train.iloc[:, -1].values
+        train_images = cifar_train.iloc[:, :-1].values / 255
+        train_images = convert_to_pytorch_images(train_images)
+
+        return train_images, train_labels
 
     def load_svhn_test_images(self):
         def flatten(images):
@@ -393,6 +468,87 @@ class Load():
 
         return test_images, test_labels
     
+    def load_svhn_train_images(self):
+        def flatten(images):
+            """
+            Flattens images back to a one hot vector format
+
+            Parameters:
+            - images: Numpy array representing the images with shape (num_images, height, width, channels)
+
+            Returns:
+            - Flat array where the first 1024 values represent the red channel, the next 1024 values represent the green channel,
+            and the last 1024 values represent the blue channel of pixels for each image.
+            Example:    
+                flat_array = flatten(train_images)
+            """
+            num_images, _, _, _ = images.shape
+
+            # Reshape the images array to (num_images, 1024, 3)
+            reshaped_images = images.reshape((num_images, -1, 3))
+
+            # Split the reshaped array into red, green, and blue channels
+            red_channel = reshaped_images[:, :, 0]
+            green_channel = reshaped_images[:, :, 1]
+            blue_channel = reshaped_images[:, :, 2]
+
+            # Stack the three channels horizontally
+            stacked_channels = np.hstack([red_channel, green_channel, blue_channel])
+
+            return stacked_channels
+
+        def load_svhn_data_mat(file_path):
+            mat_data = scipy.io.loadmat(file_path)
+
+            # Extract data and labels
+            images = mat_data['X']
+            labels = mat_data['y']
+
+            # Reshape the images to (num_samples, height, width, channels)
+            images = np.transpose(images, (3, 0, 1, 2))
+
+            # This replaces the label 10 with 0. For some reason the CUDA toolkit does not work if the labels are indexed 1-10 instead of 0-9.
+            labels[labels == 10] = 0
+
+            return images, labels
+
+        def convert_to_pytorch_images(data_array):
+            """
+            Convert a single record into a pytorch image. Pytorch takes in a very specific input where each record is 3x32x32.
+
+            Parameters:
+            - One-hot vector the first 1024 values represent the red channel of pixels, the second 1024 values represent the green channel of pixels, and the last 1024 values represent the blue channel of pixels
+
+            Returns: 
+            - a numpy array representing the image data in pytorch format
+            """
+            num_images = data_array.shape[0]
+            image_size = 32
+
+            # Split the array into three parts
+            split_size = data_array.shape[1] // 3
+            red_channel = data_array[:, :split_size].reshape((num_images, 1, image_size, image_size))
+            green_channel = data_array[:, split_size:2*split_size].reshape((num_images, 1, image_size, image_size))
+            blue_channel = data_array[:, 2*split_size:].reshape((num_images, 1, image_size, image_size))
+
+            # Stack the channels along the second axis to get the final shape (num_images, 3, 32, 32)
+            return np.concatenate([red_channel, green_channel, blue_channel], axis=1)
+
+        filepath = os.path.join(svhn_directory,"train_32x32.mat")
+        train_data, train_labels = load_svhn_data_mat(filepath)
+
+        flattened_train_data = flatten(train_data)
+        data_dict = {'pixel_{}'.format(i+1): flattened_train_data[:, i] for i in range(flattened_train_data.shape[1])}
+        data_dict['label'] = [i[0] for i in train_labels]
+        flattened_train_data = pd.DataFrame(data_dict)
+
+        train_labels = flattened_train_data.iloc[:, -1].values
+        train_images = flattened_train_data.iloc[:, :-1].values / 255
+
+        train_images = convert_to_pytorch_images(train_images)
+
+        return train_images, train_labels
+     
     def convert_mnist_numpy_to_tensor(self, images, labels):
         test_images_tensor = torch.tensor(images, dtype=torch.float32)
         test_labels_tensor = torch.tensor(labels, dtype=torch.long)
@@ -450,3 +606,4 @@ class Tester():
         accuracy = correct / total
         # print(f'Test Accuracy: {accuracy * 100:.2f}%')
         return accuracy
+    
