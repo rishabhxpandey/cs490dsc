@@ -29,7 +29,7 @@ def fgsm_attack(image, epsilon, data_grad):
     # Create the perturbed image by adjusting each pixel of the input image
     perturbed_image = image + epsilon*sign_data_grad
     # Clip values to 0-255 to maintain pixel value range
-    torch.clamp(perturbed_image, 0, 255)
+    torch.clamp(perturbed_image, 0, 1)
     # Return the perturbed image
     return perturbed_image
 
@@ -116,7 +116,7 @@ def deepfool_attack(image, model, overshoot=0.02, max_iterations=50):
 
     return x, k_i, r_total, iter
 
-def pgd_attack(image, model, init_pred, epsilon, alpha=2,  max_iterations=50):
+def pgd_attack(image, model, init_pred, epsilon, alpha,  max_iterations=50):
     """
     Author: Sai Coumar
     Description: Perturbs an image using the Projected Gradient Descent attack
