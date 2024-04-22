@@ -254,6 +254,7 @@ def nes_attack(image, model, init_pred, init_labels, epsilon, alpha=2,  max_iter
 
     return output_final, perturbed_image
 
+
 def cw_attack(images, model, labels, targeted=False, target_labels=0, c=0.1, alpha=0.01, kappa=0, max_iterations=50):
     """
     Author: Supriya Dixit
@@ -312,9 +313,9 @@ def cw_attack(images, model, labels, targeted=False, target_labels=0, c=0.1, alp
         outs, _ = model(tanh_images) #outs[1] is the probability of each class
         
         if targeted:
-            labels_encoded = F.one_hot(torch.tensor(target_labels), 10)
+            labels_encoded = F.one_hot(torch.tensor(target_labels), 10).to(device)
         else:
-            labels_encoded = F.one_hot(labels, 10)
+            labels_encoded = F.one_hot(labels, 10).to(device)
 
         
         other = torch.max((1 - labels_encoded) * outs, dim=1)
@@ -396,13 +397,13 @@ def jsma_attack(model, input_image, target_class, num_classes, theta=0.01, upsil
         predictions = model(adv_image)
 
         # Calculate the loss (targeted attack)
-        loss = -nn.CrossEntropyLoss()(predictions[1], torch.tensor([target_class]))
+        loss = -nn.CrossEntropyLoss()(predictions[1], torch.tensor([target_class]).to(device))
 
         # Zero gradients, perform a backward pass, and update the adversarial image
         optimizer.zero_grad()
         loss.backward()
         adv_image.grad.sign_()
-        adv_image.data = torch.clamp(adv_image + theta * adv_image.grad, 0, 255)
+        adv_image.data = torch.clamp(adv_image + theta * adv_image.grad, 0, 1)
 
         # Check if the adversarial image is misclassified
         if torch.argmax(model(adv_image)[1]) == target_class:
@@ -410,7 +411,7 @@ def jsma_attack(model, input_image, target_class, num_classes, theta=0.01, upsil
 
     return adv_image.detach()
 
-    
+
 # def boundary_attack(model, input_image, target_image):
 #     def get_diff(a,b):
 #         return torch.norm((a-b).view(-1))

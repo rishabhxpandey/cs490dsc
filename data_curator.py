@@ -1,6 +1,7 @@
 from model_architectures import *
 from attacks import * 
 import csv
+from multiprocessing import Pool
 
 class Curator():
     def store_data(self, filename, data, color = False):
@@ -76,3 +77,135 @@ class Curator():
             
         accuracy = correct / total
         return accuracy, adv_examples
+    def curate_pgd(self, model, test_loader, epsilon, alpha):
+        correct = 0
+        total = 0
+
+        adv_examples = []
+        batch = 0
+        
+        for images, labels in test_loader:
+            images, labels = images.to(device), labels.to(device)
+            batch += 1
+            # print(f"Batch: {batch}, Epsilon: {epsilon}, Correct: {correct}")
+            for image, label in zip(images, labels):
+                image = image.unsqueeze(0)
+                label = label.unsqueeze(0)
+                image.requires_grad = True
+                output, _ = model(image)
+
+                _, init_pred = torch.max(output.data, 1)
+
+                if not torch.equal(init_pred, label):
+                    total +=1 
+                    continue
+                
+                
+
+                output_final, perturbed_data = pgd_attack(image, model, init_pred, epsilon, alpha)
+                _, final_pred = torch.max(output_final.data, 1)
+                if torch.equal(final_pred, label):
+                    correct += 1
+                else:
+                    # Save some adv examples for visualization later
+                    adv_ex = perturbed_data.squeeze().detach().cpu().numpy()
+                    adv_examples.append( (init_pred.item(), final_pred.item(), adv_ex) )
+                # print(f"{correct}/{total}")
+                total +=1
+            
+            print(f'Batch {batch} Completed. # of Adversarial Examples: {len(adv_examples)}') 
+                # break
+            # break
+
+        accuracy = correct / total
+        # print(f"Epsilon: {epsilon}\tTest Accuracy = {correct} / {total} = {accuracy}")
+        return accuracy, adv_examples
+    
+    def curate_deepfool(self, model, test_loader, overshoot=0.02):
+        correct = 0
+        total = 0
+
+        adv_examples = []
+        batch = 0
+        
+        for images, labels in test_loader:
+            images, labels = images.to(device), labels.to(device)
+            batch += 1
+            # print(f"Batch: {batch}, Correct: {correct}")
+            for image, label in zip(images, labels):
+                # print("image number: ",total)
+                image = image.unsqueeze(0)
+                label = label.unsqueeze(0)
+                image.requires_grad = True
+                output, _ = model(image)
+
+                # print(outputs)
+
+                _, init_pred = torch.max(output.data, 1)
+
+                if not torch.equal(init_pred, label):
+                    total +=1 
+                    continue
+                
+                perturbed_image, final_pred, r_total, iter = deepfool_attack(image, model, overshoot=0.02, max_iterations=100)
+                # print(f"Perturbed Iteration: {iter}")
+                if torch.equal(final_pred, label):
+                    correct += 1
+                else:
+                    adv_ex = perturbed_image.squeeze().detach().cpu().numpy()
+                    adv_examples.append( (init_pred.item(), final_pred.item(), adv_ex) )
+                total +=1 
+            print(f'Batch {batch} Completed. # of Adversarial Examples: {len(adv_examples)}')    
+
+        accuracy = correct / total
+        # print(f"Test Accuracy = {correct} / {total} = {accuracy}")
+        return accuracy, adv_examples
+
+    def curate_jsma(self, model, test_loader, theta = 0.1):
+        model.eval()
+
+        pred_list = []
+        correct = 0
+        total = 0
+        adv_examples = []
+        batch = 0
+
+        for images, labels in test_loader:
+            images, labels = images.to(device), labels.to(device)
+            batch += 1
+            for image, label in zip(images, labels):
+                image = image.unsqueeze(0)
+                label = label.unsqueeze(0)
+
+                output, _ = model(image)
+
+                # print(outputs)
+
+                _, init_pred = torch.max(output.data, 1)
+                
+                if not torch.equal(init_pred, label):
+                    total +=1 
+                    continue 
+                
+                target = torch.topk(output,2).indices[0][1].item()
+                advimages = jsma_attack(model, image, target, 10, theta = theta)
+                output_adv, _ = model(advimages)
+                
+                _, prediction_adv = torch.max(output_adv.data, 1)
+
+                if torch.equal(prediction_adv, label):
+                    correct += 1
+                else:
+                    adv_ex = advimages.squeeze().detach().cpu().numpy()
+
+                    adv_examples.append( (init_pred.item(), prediction_adv.item(), adv_ex) )
+                    pred_list.append(prediction_adv)
+                        
+                            
+                total +=1 
+                # print(correct, "/", total)  
+                # if (total>0):
+                #     break
+            print(f'Batch {batch} Completed. # of Adversarial Examples: {len(adv_examples)}')    
+        # print('Accuracy of test text: %f %%' % ((float(correct) / total) * 100))
+        return adv_examples
