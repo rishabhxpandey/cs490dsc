@@ -208,4 +208,67 @@ class Curator():
                 #     break
             print(f'Batch {batch} Completed. # of Adversarial Examples: {len(adv_examples)}')    
         # print('Accuracy of test text: %f %%' % ((float(correct) / total) * 100))
-        return adv_examples
+        accuracy = correct / total
+        return accuracy, adv_examples
+    def curate_cw(self, model, test_loader, targeted=False, target_label=0, c=0.75, alpha=0.01, kappa= 0, max_iterations=50, mnist = 1):
+        model.eval()
+
+        pred_list = []
+        correct = 0
+        total = 0
+        adv_examples = []
+        batch = 0
+        
+        for images, labels in test_loader:
+            images, labels = images.to(device), labels.to(device)
+            batch += 1
+            for image, label in zip(images, labels):
+                image = image.unsqueeze(0)
+                label = label.unsqueeze(0)
+
+                output, _ = model(image)
+
+                # print(outputs)
+
+                _, init_pred = torch.max(output.data, 1)
+                
+
+                
+                advimages = cw_attack(image, model, init_pred, targeted, target_label, c, alpha, kappa, max_iterations)
+                output_adv, _ = model(advimages)
+                # advimages = advimages[0,:,:,:] / 255
+
+                _, prediction_adv = torch.max(output_adv.data, 1)
+
+                if torch.equal(prediction_adv, label):
+                    correct += 1
+                else:
+                    # Save some adv examples for visualization later
+                
+                    if not targeted: 
+                        #if prediction_adv not in pred_list:
+                        adv_ex = advimages.squeeze().detach().cpu().numpy()
+                        
+                        #if not mnist:
+                            #adv_ex = adv_ex/255
+                        
+                        adv_examples.append( (init_pred.item(), prediction_adv.item(), adv_ex) )
+                        pred_list.append(prediction_adv)
+                    else:
+                        adv_ex = advimages.squeeze().detach().cpu().numpy()
+                        # print(init_pred.item())
+                        adv_examples.append( (init_pred.item(), prediction_adv.item(), adv_ex) )
+                    
+                            
+                total +=1 
+                # print(correct, "/", total)  
+
+                # if total-correct > 100:
+                #     break
+        
+        accuracy = correct / total
+            
+                
+        print(f'Batch {batch} Completed. # of Adversarial Examples: {len(adv_examples)}')    
+        # print('Accuracy of test text: %f %%' % ((float(correct) / total) * 100))
+        return accuracy, adv_examples
