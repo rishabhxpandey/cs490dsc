@@ -254,19 +254,23 @@ def nes_attack(image, model, init_pred, init_labels, epsilon, alpha=2,  max_iter
 
     return output_final, perturbed_image
 
-def cw_attack(images, model, labels, targeted=False, target_labels = 0, c=0.1, alpha=0.01, kappa=0, max_iterations=50):
+def cw_attack(images, model, labels, targeted=False, target_labels=0, c=0.1, alpha=0.01, kappa=0, max_iterations=50):
     """
     Author: Supriya Dixit
     Description: Perturbs an image using the Carlini and Wagner attack
     Attack Type: White Box
 
     Parameters:
-    - image: The pytorch tensor of an image to perturb
+    - image: The pytorch tensor of one image to perturb
     - model: The classifier model to attack
+    - label: initial predicted label of the image passed in
+    - targeted: is this attack going to be targeted? default false
+    - target_labels: if this attack is targeted, what label is the target?
     - c: some constant c that lets you control how much influence the "maximum allowable" portion has
     - alpha: learning rate of adam optimizer
-    - label: label of the image passed in
-
+    - kappa: denoted in the literature as "confidence"
+    - max_iterations: maximum number of iterations you want this algorithm to make
+  
 
     Returns:
     - Perturbed image
@@ -308,20 +312,20 @@ def cw_attack(images, model, labels, targeted=False, target_labels = 0, c=0.1, a
         outs, _ = model(tanh_images) #outs[1] is the probability of each class
         
         if targeted:
-            labels_encoded = torch.eye(outs.shape[1]).to(device)[labels]
+            labels_encoded = F.one_hot(torch.tensor(target_labels), 10)
         else:
             labels_encoded = F.one_hot(labels, 10)
-        #print(outs[0])
+
         
         other = torch.max((1 - labels_encoded) * outs, dim=1)
         #real = torch.masked_select(outs, labels_encoded.byte())
         real = torch.max(labels_encoded * outs, dim=1)
         
 
-        if targeted: # If targeted, optimize for making the other class most likely
-            a = torch.clamp(other[0] - real[0], min=-kappa)
-        else:# If untargeted, optimize for making the other class most likely 
-            a = torch.clamp(real[0] - other[0], min=-kappa)
+        if targeted: 
+            a = torch.clamp((other[0] - real[0]), min=-kappa)
+        else: 
+            a = torch.clamp((real[0] - other[0]), min=-kappa)
             
         #############################################################################
         
@@ -359,15 +363,19 @@ def cw_attack(images, model, labels, targeted=False, target_labels = 0, c=0.1, a
     #return
     return best_adv_images
 
-        
-def jsma_attack( model, input_image, target_class, num_classes, theta=0.1, max_iters=50):
+def jsma_attack(model, input_image, target_class, num_classes, theta=0.01, upsilon=0.05, max_iters=100):
     """
     Author: Supriya Dixit
     Description: Perturbs an image using the JSMA attack
     Attack Type: White Box
 
     Parameters:
-    - image: The pytorch tensor of an image to perturb
+    - model: the classifier to attack
+    - input_image: The pytorch tensor of one image to perturb
+    - target_class: since jsma is a default targeted attack, you need to provide a target class
+    - theta: change made to pixels
+    - upsilon: maximum distortion allowed to the image
+    - max_iters: maximum iterations you want to do
     
 
     Returns:
@@ -378,6 +386,7 @@ def jsma_attack( model, input_image, target_class, num_classes, theta=0.1, max_i
 
     # Copy the input image to avoid modifying the original image
     adv_image = input_image.clone().detach().requires_grad_(True)
+
     # Define the optimizer
     optimizer = optim.Adam([adv_image], lr=0.01)
 
@@ -387,20 +396,21 @@ def jsma_attack( model, input_image, target_class, num_classes, theta=0.1, max_i
         predictions = model(adv_image)
 
         # Calculate the loss (targeted attack)
-        loss = -nn.CrossEntropyLoss()(predictions[1], torch.tensor([target_class]).to(device))
+        loss = -nn.CrossEntropyLoss()(predictions[1], torch.tensor([target_class]))
 
         # Zero gradients, perform a backward pass, and update the adversarial image
         optimizer.zero_grad()
         loss.backward()
         adv_image.grad.sign_()
-        
-        adv_image.data = torch.clamp(adv_image + theta * adv_image.grad, 0, 1)
+        adv_image.data = torch.clamp(adv_image + theta * adv_image.grad, 0, 255)
+
         # Check if the adversarial image is misclassified
         if torch.argmax(model(adv_image)[1]) == target_class:
             break
 
     return adv_image.detach()
 
+    
 # def boundary_attack(model, input_image, target_image):
 #     def get_diff(a,b):
 #         return torch.norm((a-b).view(-1))
