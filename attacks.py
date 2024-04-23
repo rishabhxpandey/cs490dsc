@@ -6,7 +6,7 @@ print(f"Using device: {device}")
 import copy
 import torch.optim as optim
 import model_architectures
-
+import numpy as np
 
 def fgsm_attack(image, epsilon, data_grad):
     """
@@ -411,6 +411,7 @@ def jsma_attack(model, input_image, target_class, num_classes, theta=0.01, upsil
 
     return adv_image.detach()
 
+
 def square_attack_loss(model, image, label):
     """
     Square Attack helper function 
@@ -508,7 +509,7 @@ def square_attack(model, image, size, channels, epsilon, label, mnist, max_itera
         
         # perturb adv_image for the new one
         delta = np.transpose(delta, (2, 0, 1))
-        x_hat = adv_image + delta
+        x_hat = adv_image + delta.to(device)
 
         # temporary variables to project perturbed image onto the epsilon-ball space around the original image
         # since we use the l infinity norm, this is done with mins and maxes
