@@ -411,6 +411,131 @@ def jsma_attack(model, input_image, target_class, num_classes, theta=0.01, upsil
 
     return adv_image.detach()
 
+def square_attack_loss(model, image, label):
+    """
+    Square Attack helper function 
+    Author: Supriya Dixit
+    """
+    
+    one_hot_label = F.one_hot(label, 10)
+    outs, _ = model(image)
+    
+    real = torch.max(one_hot_label * outs, dim=1)
+    other = torch.max((1 - one_hot_label) * outs, dim=1)
+    
+    return (real[0] - other[0])
+
+def p_selection(starting, current_iter, max_iters):
+    """
+    Square Attack helper function 
+    Author: Supriya Dixit
+    Piece-wise constant schedule for p (the fraction of pixels changed on every iteration).
+    lifted from the literature. dont blame me for this shitty code lol
+    """
+    
+    current_iter = int(current_iter / max_iters * 10000)
+
+    if 10 < current_iter <= 50:
+        p = starting / 2
+    elif 50 < current_iter <= 200:
+        p = starting / 4
+    elif 200 < current_iter <= 500:
+        p = starting / 8
+    elif 500 < current_iter <= 1000:
+        p = starting / 16
+    elif 1000 < current_iter <= 2000:
+        p = starting / 32
+    elif 2000 < current_iter <= 4000:
+        p = starting / 64
+    elif 4000 < current_iter <= 6000:
+        p = starting / 128
+    elif 6000 < current_iter <= 8000:
+        p = starting / 256
+    elif 8000 < current_iter <= 10000:
+        p = starting / 512
+    else:
+        p = starting
+
+    return p
+    
+def sampling_distribution(epsilon, h, size, channels):
+    """
+    Square Attack helper function 
+    Author: Supriya Dixit
+    """
+    
+    delta = torch.zeros(size, size, channels)
+    
+    r = np.random.randint(0, size-h)
+    s = np.random.randint(0, size-h)
+
+    for i in range(channels):
+        rho = np.random.choice([-2*epsilon, 2*epsilon])
+        delta[r:(r+h), s:(s+h), i] = rho * torch.ones([h,h])
+        
+    return delta
+
+def square_attack(model, image, size, channels, epsilon, label, mnist, max_iterations= 50):
+    """
+    Author: Supriya Dixit
+    Description: Perturbs image using a square attack
+    Attack type: black box score based
+    
+    Parameters:
+    - model: classifier to attack
+    - image: image
+    - size: size of the image "w"
+    - channels: number of color channels of the image
+    - epsilon: lp-radius i.e. max perturbation size
+    - label: true label
+    - max_iterations: = max iterations
+    
+    Literature: https://arxiv.org/abs/1912.00049
+    Returns:
+    - Perturbed image
+    """
+    adv_image = image
+    l_star = square_attack_loss(model, image, label)
+    
+    if mnist:
+        pinnit = 0.8
+    else:
+        pinnit = 0.25
+    
+    for i in range(max_iterations):
+        h = int(p_selection(pinnit, i, max_iterations) * size)
+        delta = sampling_distribution(epsilon, h, size, channels)
+        
+        # perturb adv_image for the new one
+        delta = np.transpose(delta, (2, 0, 1))
+        x_hat = adv_image + delta
+
+        # temporary variables to project perturbed image onto the epsilon-ball space around the original image
+        # since we use the l infinity norm, this is done with mins and maxes
+
+        # first, clamp to image-epsilon
+        concatenated_images_min = torch.cat((torch.unsqueeze(x_hat, dim=0), torch.unsqueeze(image-epsilon, dim=0)), dim=0)
+        x_hat, _ = torch.max(concatenated_images_min,dim=0)
+
+        # now clamp to image+epsilon
+        # note that torch.max unsqueezes the tensor so we have to unsqueeze again
+        concatenated_images_max = torch.cat((torch.unsqueeze(x_hat, dim=0), torch.unsqueeze(image+epsilon, dim=0)), dim=0)
+        x_hat, _ = torch.min(concatenated_images_max, dim=0)
+
+        # clamp between 0 and 1
+        x_hat = torch.clamp(x_hat, min=0, max=1)
+        
+        l_new = square_attack_loss(model, x_hat, label)
+        
+        if l_new < l_star: 
+            adv_image = x_hat
+            l_star = l_new
+        
+        if torch.argmax(model(adv_image)[1]) != label:
+            break
+        
+    
+    return adv_image
 
 # def boundary_attack(model, input_image, target_image):
 #     def get_diff(a,b):
